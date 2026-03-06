@@ -1,0 +1,80 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Antigravity - Dashboard</title>
+    <link rel="stylesheet" href="popup.css">
+</head>
+
+<body>
+    <div class="main-wrapper">
+        <!-- Sidebar Navigation -->
+        <aside id="sidebar" class="sidebar">
+            <div class="sidebar-header">
+                <h2>Knowledge Map</h2>
+                <button id="closeSidebar" class="icon-btn">✕</button>
+            </div>
+            <div id="sidebarGroups" class="sidebar-content">
+                <!-- Group links injected here -->
+            </div>
+        </aside>
+
+        <!-- Main Content Area -->
+        <div class="main-layout">
+            <div class="header">
+                <div class="header-left">
+                    <button id="toggleSidebar" class="icon-btn" title="Toggle Navigation Map">☰</button>
+                    <h1>Antigravity</h1>
+                </div>
+                <div id="learningStatus" class="status-badge hidden">🎓 Learning Mode Active</div>
+            </div>
+
+            <div class="container">
+                <!-- Study Tracking -->
+                <section class="timer-section">
+                    <div class="timer-display">
+                        <div class="label-group">
+                            <strong>Study Time Today</strong>
+                            <p>Auto-tracking on learning pages</p>
+                        </div>
+                        <div id="studyTime">00:00:00</div>
+                    </div>
+                    <button id="resetTimer" class="small-btn" style="margin-top: 8px;">Reset Timer</button>
+                </section>
+
+                <!-- Focus Mode -->
+                <section class="focus-section">
+                    <div class="focus-box">
+                        <div class="label-group">
+                            <strong>Focus Mode</strong>
+                            <p>Hide YouTube distractions</p>
+                        </div>
+                        <label class="switch">
+                            <input type="checkbox" id="focusToggle">
+                            <span class="slider"></span>
+                        </label>
+                    </div>
+                </section>
+
+                <!-- Note Entry -->
+                <section class="add-note">
+                    <textarea id="noteText" placeholder="Capture a thought or insight..."></textarea>
+                    <button id="saveNoteBtn" class="primary-btn">Save Note</button>
+                </section>
+
+                <!-- Learning Timeline -->
+                <div class="notes-scroll">
+                    <div id="notesList">
+                        <div class="empty-state">Scan a learning page to start collecting...</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="popup.js"></script>
+</body>
+
+</html>
