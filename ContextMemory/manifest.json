@@ -1,8 +1,8 @@
 {
   "manifest_version": 3,
-  "name": "Antigravity",
+  "name": "LearnDock",
   "version": "2.0.0",
-  "description": "Premium productivity and learning suite with an on-page sidebar for seamless note-taking.",
+  "description": "Your on-page learning dock — capture notes, track study time, and organize knowledge automatically.",
   "permissions": [
     "storage",
     "activeTab",
@@ -31,7 +31,17 @@
       "run_at": "document_idle"
     }
   ],
+  "icons": {
+    "16": "icon16.png",
+    "48": "icon48.png",
+    "128": "icon128.png"
+  },
   "action": {
-    "default_popup": "popup.html"
+    "default_popup": "popup.html",
+    "default_icon": {
+      "16": "icon16.png",
+      "48": "icon48.png",
+      "128": "icon128.png"
+    }
   }
 }

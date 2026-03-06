@@ -1,7 +1,7 @@
-// content.js - Antigravity v2.0
+// content.js - LearnDock v2.0
 
 // ============================================================
-// 1. MESSAGE LISTENER (Focus Mode, Seek, Ping, Scan)
+// 1. MESSAGE LISTENER
 // ============================================================
 chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
     if (request.action === "scanPage") {
@@ -38,11 +38,11 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
 // 2. FOCUS MODE
 // ============================================================
 function toggleFocusMode(enabled) {
-    let focusStyle = document.getElementById('ag-focus-style');
+    let focusStyle = document.getElementById('ld-focus-style');
     if (enabled) {
         if (!focusStyle) {
             focusStyle = document.createElement('style');
-            focusStyle.id = 'ag-focus-style';
+            focusStyle.id = 'ld-focus-style';
             focusStyle.textContent = `
                 #related, #comments, #secondary,
                 ytd-watch-next-secondary-results-renderer,
@@ -83,55 +83,81 @@ function formatTime(seconds) {
 // 4. SIDEBAR INJECTION
 // ============================================================
 function injectSidebar() {
-    if (document.getElementById('antigravity-sidebar')) return; // Already injected
+    if (document.getElementById('learndock-sidebar')) return;
 
     // Toggle button
     const toggleBtn = document.createElement('button');
-    toggleBtn.id = 'antigravity-toggle';
-    toggleBtn.innerHTML = '✦';
-    toggleBtn.title = 'Open Antigravity';
+    toggleBtn.id = 'learndock-toggle';
+    toggleBtn.innerHTML = '⚓';
+    toggleBtn.title = 'Open LearnDock';
     document.body.appendChild(toggleBtn);
 
-    // Sidebar shell
+    // Sidebar
     const sidebar = document.createElement('div');
-    sidebar.id = 'antigravity-sidebar';
+    sidebar.id = 'learndock-sidebar';
     sidebar.innerHTML = `
-        <div id="ag-sidebar-header">
-            <h2>✦ Antigravity</h2>
-            <span id="ag-badge">🎓 Learning</span>
-            <button id="ag-close-btn" title="Close">✕</button>
+        <div id="ld-header">
+            <h2>⚓ LearnDock</h2>
+            <span id="ld-badge">🎓 Learning</span>
+            <button class="ld-icon-btn" id="ld-theme-btn" title="Toggle Theme">🌙</button>
+            <button class="ld-icon-btn" id="ld-close-btn" title="Close">✕</button>
         </div>
-        <div id="ag-controls">
-            <input type="text" id="ag-note-input" placeholder="Add a note..." autocomplete="off"/>
-            <button id="ag-save-btn">Save</button>
+        <div id="ld-controls">
+            <input type="text" id="ld-note-input" placeholder="Add a note..." autocomplete="off"/>
+            <button id="ld-save-btn">Save</button>
         </div>
-        <div id="ag-timer-bar">
-            <span id="ag-timer-label">Study Time</span>
-            <span id="ag-study-time">00:00:00</span>
+        <div id="ld-timer-bar">
+            <span id="ld-timer-label">Study Time Today</span>
+            <span id="ld-study-time">00:00:00</span>
         </div>
-        <div id="ag-notes-list"></div>
+        <div id="ld-notes-list"></div>
     `;
     document.body.appendChild(sidebar);
 
-    // Toggle logic
-    toggleBtn.addEventListener('click', () => {
-        sidebar.classList.toggle('ag-open');
-        if (sidebar.classList.contains('ag-open')) renderNotes();
+    // Load persisted theme
+    chrome.storage.local.get(['ldTheme'], (res) => {
+        const theme = res.ldTheme || 'light';
+        applyTheme(theme);
     });
 
-    document.getElementById('ag-close-btn').addEventListener('click', () => {
-        sidebar.classList.remove('ag-open');
+    // Theme toggle
+    document.getElementById('ld-theme-btn').addEventListener('click', () => {
+        const isDark = sidebar.classList.contains('ld-dark');
+        const newTheme = isDark ? 'light' : 'dark';
+        applyTheme(newTheme);
+        chrome.storage.local.set({ ldTheme: newTheme });
+    });
+
+    function applyTheme(theme) {
+        const btn = document.getElementById('ld-theme-btn');
+        if (theme === 'dark') {
+            sidebar.classList.add('ld-dark');
+            if (btn) btn.textContent = '☀️';
+        } else {
+            sidebar.classList.remove('ld-dark');
+            if (btn) btn.textContent = '🌙';
+        }
+    }
+
+    // Toggle sidebar open/close
+    toggleBtn.addEventListener('click', () => {
+        sidebar.classList.toggle('ld-open');
+        if (sidebar.classList.contains('ld-open')) renderNotes();
+    });
+
+    document.getElementById('ld-close-btn').addEventListener('click', () => {
+        sidebar.classList.remove('ld-open');
     });
 
     // Save note
-    document.getElementById('ag-save-btn').addEventListener('click', saveManualNote);
-    document.getElementById('ag-note-input').addEventListener('keydown', (e) => {
+    document.getElementById('ld-save-btn').addEventListener('click', saveManualNote);
+    document.getElementById('ld-note-input').addEventListener('keydown', (e) => {
         if (e.key === 'Enter') saveManualNote();
     });
 
-    // Live storage listener — refreshes sidebar when any note is added/deleted
+    // Live storage listener
     chrome.storage.onChanged.addListener((changes) => {
-        if (changes.notes && sidebar.classList.contains('ag-open')) {
+        if (changes.notes && sidebar.classList.contains('ld-open')) {
             renderNotes();
         }
         if (changes.studyTimeToday) {
@@ -139,7 +165,6 @@ function injectSidebar() {
         }
     });
 
-    // Initial data load
     renderNotes();
     loadTimer();
 }
@@ -154,7 +179,7 @@ function loadTimer() {
 }
 
 function updateTimer(seconds) {
-    const el = document.getElementById('ag-study-time');
+    const el = document.getElementById('ld-study-time');
     if (!el) return;
     const h = Math.floor(seconds / 3600);
     const m = Math.floor((seconds % 3600) / 60);
@@ -166,13 +191,12 @@ function updateTimer(seconds) {
 // 6. SAVE MANUAL NOTE
 // ============================================================
 function saveManualNote() {
-    const input = document.getElementById('ag-note-input');
+    const input = document.getElementById('ld-note-input');
     const text = input ? input.value.trim() : '';
     if (!text) return;
 
     const video = document.querySelector("video");
     const timestamp = video ? video.currentTime : null;
-    const noteType = video ? "video-note" : "note";
     const now = Date.now();
 
     const newNote = {
@@ -182,11 +206,11 @@ function saveManualNote() {
         note: text,
         timestamp: timestamp,
         createdAt: now,
-        type: noteType
+        type: video ? "video-note" : "note"
     };
 
-    chrome.runtime.sendMessage({ action: "saveNote", note: newNote }, (res) => {
-        if (chrome.runtime.lastError) { /* suppress */ }
+    chrome.runtime.sendMessage({ action: "saveNote", note: newNote }, () => {
+        if (chrome.runtime.lastError) { }
         if (input) input.value = '';
     });
 }
@@ -195,7 +219,7 @@ function saveManualNote() {
 // 7. NOTE RENDERING
 // ============================================================
 function renderNotes() {
-    const container = document.getElementById('ag-notes-list');
+    const container = document.getElementById('ld-notes-list');
     if (!container) return;
 
     chrome.storage.local.get({ notes: [] }, (result) => {
@@ -203,7 +227,7 @@ function renderNotes() {
         container.innerHTML = '';
 
         if (notes.length === 0) {
-            container.innerHTML = `<div class="ag-empty">No notes yet.<br>Navigate to a learning page and Antigravity will start capturing insights automatically.</div>`;
+            container.innerHTML = `<div class="ld-empty">No notes yet.<br>Navigate to a learning page — LearnDock will start capturing insights automatically.</div>`;
             return;
         }
 
@@ -218,55 +242,53 @@ function renderNotes() {
         Object.keys(groups).sort().forEach(category => {
             const groupNotes = groups[category];
             const groupEl = document.createElement('div');
-            groupEl.className = 'ag-group';
+            groupEl.className = 'ld-group';
 
             const headerBtn = document.createElement('button');
-            headerBtn.className = 'ag-group-header';
-            headerBtn.innerHTML = `<span>📂 ${escapeHtml(category)}</span> <span class="ag-group-badge">${groupNotes.length}</span>`;
+            headerBtn.className = 'ld-group-header';
+            headerBtn.innerHTML = `<span>📂 ${escapeHtml(category)}</span> <span class="ld-group-badge">${groupNotes.length}</span>`;
 
             const itemsEl = document.createElement('div');
-            itemsEl.className = 'ag-group-items'; // collapsed by default
+            itemsEl.className = 'ld-group-items';
 
-            headerBtn.onclick = () => {
-                itemsEl.classList.toggle('open');
-            };
+            headerBtn.onclick = () => itemsEl.classList.toggle('open');
 
             groupNotes.forEach(note => {
                 const noteEl = document.createElement('div');
-                noteEl.className = 'ag-note';
+                noteEl.className = 'ld-note';
 
                 const typeIcon = note.type === 'video-note' ? '▶' : (note.type === 'auto-note' ? '🤖' : '📄');
 
                 let tsHtml = '';
                 if (note.timestamp !== null && note.timestamp !== undefined) {
-                    tsHtml = `<span class="ag-timestamp" data-time="${note.timestamp}">[${formatTime(note.timestamp)}]</span>`;
+                    tsHtml = `<span class="ld-timestamp" data-time="${note.timestamp}">[${formatTime(note.timestamp)}]</span>`;
                 }
 
                 noteEl.innerHTML = `
-                    <span class="ag-note-icon">${typeIcon}</span>
-                    <div class="ag-note-body">
-                        <a href="${note.url}" target="_blank" class="ag-note-link">${tsHtml}${escapeHtml(note.note)}</a>
-                        <div class="ag-note-meta">${escapeHtml(note.pageTitle)}</div>
+                    <span class="ld-note-icon">${typeIcon}</span>
+                    <div class="ld-note-body">
+                        <a href="${note.url}" target="_blank" class="ld-note-link">${tsHtml}${escapeHtml(note.note)}</a>
+                        <div class="ld-note-meta">${escapeHtml(note.pageTitle)}</div>
                     </div>
-                    <button class="ag-delete-btn" data-id="${note.id}" title="Remove">🗑️</button>
+                    <button class="ld-delete-btn" data-id="${note.id}" title="Remove">🗑️</button>
                 `;
 
-                // Timestamp click handler (seek)
-                const tsEl = noteEl.querySelector('.ag-timestamp');
+                // Seek timestamp
+                const tsEl = noteEl.querySelector('.ld-timestamp');
                 if (tsEl) {
                     tsEl.addEventListener('click', (e) => {
                         e.preventDefault();
                         e.stopPropagation();
                         const video = document.querySelector("video");
-                        if (video && window.location.href === note.url) {
+                        if (video) {
                             video.currentTime = parseFloat(tsEl.dataset.time);
                             video.play();
                         }
                     });
                 }
 
-                // Delete handler
-                noteEl.querySelector('.ag-delete-btn').addEventListener('click', (e) => {
+                // Delete
+                noteEl.querySelector('.ld-delete-btn').addEventListener('click', (e) => {
                     e.stopPropagation();
                     chrome.storage.local.get({ notes: [] }, (res) => {
                         const updated = res.notes.filter(n => n.id !== note.id);
@@ -319,19 +341,18 @@ function autoExtractContent() {
 }
 
 function showDetectionBadge() {
-    const badge = document.getElementById('ag-badge');
+    const badge = document.getElementById('ld-badge');
     if (badge) badge.classList.add('visible');
 
-    // Floating badge on page
-    if (document.getElementById('ag-page-badge')) return;
+    if (document.getElementById('ld-page-badge')) return;
     const el = document.createElement('div');
-    el.id = 'ag-page-badge';
-    el.innerText = "🎓 Antigravity Active";
+    el.id = 'ld-page-badge';
+    el.innerText = "⚓ LearnDock Active";
     Object.assign(el.style, {
         position: 'fixed', bottom: '24px', left: '24px',
-        background: 'linear-gradient(135deg, #1e40af, #3b82f6)',
+        background: 'linear-gradient(135deg, #1e3a8a, #3b82f6)',
         color: '#fff', padding: '10px 18px', borderRadius: '20px',
-        boxShadow: '0 4px 16px rgba(59, 130, 246, 0.4)',
+        boxShadow: '0 4px 16px rgba(59,130,246,0.4)',
         zIndex: '2147483640', fontFamily: 'sans-serif',
         fontWeight: '700', fontSize: '13px', transition: 'opacity 0.6s'
     });
@@ -354,7 +375,7 @@ function runAutoFlow() {
         type: "auto-note"
     };
 
-    chrome.runtime.sendMessage({ action: "autoSaveNote", note: autoNote }, (res) => {
+    chrome.runtime.sendMessage({ action: "autoSaveNote", note: autoNote }, () => {
         if (chrome.runtime.lastError) { }
     });
 }
@@ -369,15 +390,14 @@ function init() {
     });
 }
 
-// Delay init to not block page load
 setTimeout(init, 800);
 setTimeout(runAutoFlow, 2500);
 
-// YouTube SPA support
+// YouTube SPA
 if (window.location.hostname.includes('youtube.com')) {
     window.addEventListener('yt-navigate-finish', () => {
         setTimeout(() => {
-            renderNotes(); // Refresh sidebar notes
+            renderNotes();
             runAutoFlow();
         }, 3000);
     });
