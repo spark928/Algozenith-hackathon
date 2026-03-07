@@ -5,7 +5,40 @@
 LearnDock is a Chrome Extension (Manifest V3) that injects a persistent sidebar into every page, automatically detects learning content, saves notes with full context, and enforces distraction blocking during timed focus sessions.
 
 ---
+## 🏁 Hackathon Track
 
+> 🟢 **Learning & Coding Extensions** — *Enhance skill development*
+
+LearnDock is an **Auto Notes Collector + Learning Progress Tracker** that automatically captures, categorizes, and organizes everything you learn across the web — while keeping you focused with a built-in Pomodoro timer and distraction blocker.
+
+---
+
+## ❓ Problem Statement
+
+Modern learners face a fragmented and distraction-prone browsing experience:
+
+- 📌 **No persistent note-taking** — insights from articles, videos, and docs are lost the moment you close a tab
+- 🧠 **Zero context retention** — switching between dozens of tabs leaves no record of what was learned or where
+- 📂 **Unorganized knowledge** — highlights and bookmarks pile up with no automatic structure or grouping
+- 📵 **Constant distraction** — social media is one tab away from your study session at all times
+- ⏱️ **No time awareness** — learners have no built-in way to track or commit to focused study time
+
+---
+
+## ✅ Our Solution
+
+LearnDock addresses every one of these problems directly inside the browser — no external apps, no accounts, no friction:
+
+| Problem | LearnDock Solution |
+|---|---|
+| Notes lost when tab closes | Persistent `chrome.storage.local` — notes survive forever |
+| No context on saved content | Every note stores page title, URL, and auto-detected topic category |
+| Unorganized highlights | Automatic keyword-based categorization groups notes by subject instantly |
+| Social media distractions | Site blocker activates automatically during focus sessions |
+| No time commitment | Pomodoro-style focus timer with progress bar and desktop notification on completion |
+| Switching apps to take notes | In-page sidebar injected on every website — never leave the page |
+
+> LearnDock turns your browser into a focused, self-organizing learning environment — anchored wherever you study.
 ## Installation (Developer Mode)
 
 1. Open Google Chrome and navigate to `chrome://extensions/`
