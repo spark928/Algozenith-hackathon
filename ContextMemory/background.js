@@ -34,6 +34,30 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
     sendResponse({ status: "pong" });
   }
 
+  // Rename all notes in a category to a new name
+  else if (request.action === "renameGroup") {
+    const { oldName, newName } = request;
+    chrome.storage.local.get({ notes: [] }, (res) => {
+      const updated = res.notes.map(n =>
+        n.category === oldName ? { ...n, category: newName } : n
+      );
+      chrome.storage.local.set({ notes: updated }, () => sendResponse({ ok: true }));
+    });
+    return true;
+  }
+
+  // Move a single note to a different category
+  else if (request.action === "moveNote") {
+    const { noteId, newCategory } = request;
+    chrome.storage.local.get({ notes: [] }, (res) => {
+      const updated = res.notes.map(n =>
+        n.id === noteId ? { ...n, category: newCategory } : n
+      );
+      chrome.storage.local.set({ notes: updated }, () => sendResponse({ ok: true }));
+    });
+    return true;
+  }
+
   return true;
 });
 

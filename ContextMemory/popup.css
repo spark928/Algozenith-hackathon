@@ -480,3 +480,36 @@ input:checked+.slider:before {
 ::-webkit-scrollbar-thumb:hover {
     background: #cbd5e1;
 }
+/* ── Add Note Actions row ─────────────────────────────────── */
+.add-note-actions { display: flex; gap: 8px; }
+.add-note-actions .primary-btn { flex: 1; }
+.secondary-btn {
+    flex: 1; background: #f1f5f9; color: #374151;
+    border: 1px solid #e5e7eb; border-radius: 8px;
+    padding: 10px; font-size: 12px; font-weight: 700;
+    cursor: pointer; transition: background 0.2s, color 0.2s;
+}
+.secondary-btn:hover { background: #e2e8f0; color: #111827; }
+
+/* ── Drag & Drop ────────────────────────────────────────────── */
+.note-item.dragging { opacity: 0.4; cursor: grabbing; }
+.note-item[draggable="true"] { cursor: grab; }
+.category-group.drag-over {
+    outline: 2px dashed #3b82f6; outline-offset: -2px;
+    background: #eff6ff; border-radius: 10px;
+}
+
+/* ── Group Rename ───────────────────────────────────────────── */
+.rename-btn {
+    background: none; border: none; cursor: pointer;
+    font-size: 12px; padding: 0 4px; opacity: 0;
+    transition: opacity 0.2s; line-height: 1; margin-left: 4px; flex-shrink: 0;
+}
+.category-header:hover .rename-btn { opacity: 0.65; }
+.rename-btn:hover { opacity: 1 !important; }
+.rename-input {
+    font-size: 13px; font-weight: 700; font-family: inherit;
+    border: none; border-bottom: 2px solid #3b82f6;
+    background: transparent; color: #111827;
+    outline: none; padding: 0 4px; min-width: 80px; max-width: 170px;
+}

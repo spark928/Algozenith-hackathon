@@ -385,3 +385,63 @@
     padding: 32px 16px;
     line-height: 1.8;
 }
+/* ── Sidebar Drag & Drop ────────────────────────────────────── */
+/* Note being dragged fades out */
+.ld-dragging {
+    opacity: 0.4;
+    cursor: grabbing;
+}
+/* Draggable notes show grab cursor */
+.ld-note[draggable="true"] {
+    cursor: grab;
+}
+/* Drop target highlight */
+.ld-group.ld-drag-over {
+    outline: 2px dashed var(--ld-primary);
+    outline-offset: -2px;
+    background: rgba(59, 130, 246, 0.06);
+    border-radius: 10px;
+}
+
+/* ── Sidebar Group Rename ────────────────────────────────────── */
+.ld-rename-btn {
+    background: none;
+    border: none;
+    cursor: pointer;
+    font-size: 11px;
+    padding: 0 3px;
+    opacity: 0;
+    transition: opacity 0.2s;
+    line-height: 1;
+    margin-left: 4px;
+    flex-shrink: 0;
+    color: var(--ld-muted);
+}
+.ld-group-header:hover .ld-rename-btn {
+    opacity: 0.65;
+}
+.ld-rename-btn:hover {
+    opacity: 1 !important;
+}
+/* Inline rename input replaces title span */
+.ld-rename-input {
+    font-size: 12px;
+    font-weight: 700;
+    font-family: inherit;
+    border: none;
+    border-bottom: 2px solid var(--ld-primary);
+    background: transparent;
+    color: var(--ld-text);
+    outline: none;
+    padding: 0 4px;
+    min-width: 70px;
+    max-width: 150px;
+}
+/* Keep group title and badge side by side */
+.ld-group-title {
+    flex: 1;
+    text-align: left;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}

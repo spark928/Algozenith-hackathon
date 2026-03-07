@@ -216,8 +216,12 @@ function saveManualNote() {
 }
 
 // ============================================================
-// 7. NOTE RENDERING
+// 7. NOTE RENDERING — Sidebar (Drag & Drop + Group Rename)
 // ============================================================
+
+// Drag state — tracks which note is currently being dragged
+let _dragNoteId = null;
+
 function renderNotes() {
     const container = document.getElementById('ld-notes-list');
     if (!container) return;
@@ -231,7 +235,7 @@ function renderNotes() {
             return;
         }
 
-        // Group by category
+        // ── Group notes by category ─────────────────────────
         const groups = {};
         notes.forEach(note => {
             const cat = note.category || "General Learning";
@@ -243,21 +247,93 @@ function renderNotes() {
             const groupNotes = groups[category];
             const groupEl = document.createElement('div');
             groupEl.className = 'ld-group';
+            groupEl.dataset.category = category;
 
+            // ── Drop target: highlight on hover, move note on drop ──
+            groupEl.addEventListener('dragover', (e) => {
+                e.preventDefault();
+                e.dataTransfer.dropEffect = 'move';
+                groupEl.classList.add('ld-drag-over');
+            });
+            groupEl.addEventListener('dragleave', (e) => {
+                // Avoid flicker when cursor moves over child elements
+                if (!groupEl.contains(e.relatedTarget)) {
+                    groupEl.classList.remove('ld-drag-over');
+                }
+            });
+            groupEl.addEventListener('drop', (e) => {
+                e.preventDefault();
+                groupEl.classList.remove('ld-drag-over');
+                const targetCat = groupEl.dataset.category;
+
+                // ── Persistence: STEP 2 (Read ID from dataTransfer) ──
+                // Using "noteId" key to match popup.js logic for cross-interface consistency.
+                const noteId = parseInt(e.dataTransfer.getData("noteId"), 10);
+                if (!noteId || targetCat === category) return;
+
+                // ── Persistence: STEP 3 (Update Storage) ────────────
+                // We update storage directly here. The storage.onChanged listener
+                // will automatically trigger renderNotes() for STEP 4 (Re-render).
+                chrome.storage.local.get({ notes: [] }, (res) => {
+                    const updatedNotes = res.notes.map(n =>
+                        n.id === noteId ? { ...n, category: targetCat } : n
+                    );
+                    chrome.storage.local.set({ notes: updatedNotes });
+                });
+
+                _dragNoteId = null;
+            });
+
+            // ── Group header with collapse toggle + rename ───
             const headerBtn = document.createElement('button');
             headerBtn.className = 'ld-group-header';
-            headerBtn.innerHTML = `<span>📂 ${escapeHtml(category)}</span> <span class="ld-group-badge">${groupNotes.length}</span>`;
 
+            // Title span (replaced by input during rename)
+            const titleSpan = document.createElement('span');
+            titleSpan.className = 'ld-group-title';
+            titleSpan.textContent = `📂 ${category}`;
+
+            // Note count badge
+            const badge = document.createElement('span');
+            badge.className = 'ld-group-badge';
+            badge.textContent = groupNotes.length;
+
+            // ✏️ Rename button — appears on header hover
+            const renameBtn = document.createElement('button');
+            renameBtn.className = 'ld-rename-btn';
+            renameBtn.title = 'Rename group';
+            renameBtn.textContent = '✏️';
+            renameBtn.addEventListener('click', (e) => {
+                e.stopPropagation(); // don't trigger collapse
+                _startSidebarRename(category, titleSpan, groupEl);
+            });
+
+            // Append elements to header
+            headerBtn.appendChild(titleSpan);
+            headerBtn.appendChild(badge);
+            headerBtn.appendChild(renameBtn);
+
+            // Items container (collapsed by default)
             const itemsEl = document.createElement('div');
             itemsEl.className = 'ld-group-items';
 
-            headerBtn.onclick = () => itemsEl.classList.toggle('open');
+            // Click header (not rename btn) to toggle collapse
+            headerBtn.onclick = (e) => {
+                if (e.target === renameBtn) return;
+                itemsEl.classList.toggle('open');
+            };
 
+            // ── Build note items ─────────────────────────────
             groupNotes.forEach(note => {
                 const noteEl = document.createElement('div');
                 noteEl.className = 'ld-note';
 
-                const typeIcon = note.type === 'video-note' ? '▶' : (note.type === 'auto-note' ? '🤖' : '📄');
+                // Make note draggable
+                noteEl.draggable = true;
+                noteEl.dataset.noteId = note.id;
+
+                const typeIcon = note.type === 'video-note' ? '▶' :
+                    (note.type === 'auto-note' ? '🤖' : '📄');
 
                 let tsHtml = '';
                 if (note.timestamp !== null && note.timestamp !== undefined) {
@@ -270,10 +346,41 @@ function renderNotes() {
                         <a href="${note.url}" target="_blank" class="ld-note-link">${tsHtml}${escapeHtml(note.note)}</a>
                         <div class="ld-note-meta">${escapeHtml(note.pageTitle)}</div>
                     </div>
-                    <button class="ld-delete-btn" data-id="${note.id}" title="Remove">🗑️</button>
+                    <button class="ld-delete-btn" title="Remove">🗑️</button>
                 `;
 
-                // Seek timestamp
+                // ── Persistence: STEP 1 (Store ID on Drag Start) ────
+                // We use "noteId" to serialize the note's identity during the drag.
+                noteEl.addEventListener('dragstart', (e) => {
+                    _dragNoteId = note.id;
+
+                    // Encode ID in dataTransfer so the drop handler can read it reliably
+                    e.dataTransfer.setData("noteId", String(note.id));
+                    e.dataTransfer.effectAllowed = 'move';
+                    noteEl.classList.add('ld-dragging');
+
+                    // Collapse the source group so other groups become visible while dragging.
+                    // Using setTimeout(..., 0) ensures this happens AFTER the drag is fully initiated,
+                    // preventing the group from collapsing during a simple press-and-hold (mousedown).
+                    setTimeout(() => {
+                        const sourceGroup = noteEl.closest('.ld-group');
+                        if (sourceGroup) {
+                            const srcItems = sourceGroup.querySelector('.ld-group-items');
+                            if (srcItems && srcItems.classList.contains('open')) {
+                                srcItems.classList.remove('open');
+                            }
+                        }
+                    }, 0);
+                });
+                noteEl.addEventListener('dragend', () => {
+                    _dragNoteId = null;
+                    noteEl.classList.remove('ld-dragging');
+                    // Clean up any stray drag-over highlights
+                    document.querySelectorAll('.ld-drag-over')
+                        .forEach(el => el.classList.remove('ld-drag-over'));
+                });
+
+                // Timestamp seek on click
                 const tsEl = noteEl.querySelector('.ld-timestamp');
                 if (tsEl) {
                     tsEl.addEventListener('click', (e) => {
@@ -287,7 +394,7 @@ function renderNotes() {
                     });
                 }
 
-                // Delete
+                // Delete note
                 noteEl.querySelector('.ld-delete-btn').addEventListener('click', (e) => {
                     e.stopPropagation();
                     chrome.storage.local.get({ notes: [] }, (res) => {
@@ -304,6 +411,58 @@ function renderNotes() {
             container.appendChild(groupEl);
         });
     });
+}
+
+/**
+ * Inline rename for a sidebar group:
+ * Replaces the title span with an <input>, persists on Enter/blur.
+ * Sends renameGroup message to background.js on confirm.
+ */
+function _startSidebarRename(oldName, titleSpan, groupEl) {
+    const input = document.createElement('input');
+    input.type = 'text';
+    input.value = oldName;
+    input.className = 'ld-rename-input';
+    input.onclick = (e) => e.stopPropagation();
+
+    titleSpan.replaceWith(input);
+    input.focus();
+    input.select();
+
+    function applyRename() {
+        const newName = input.value.trim();
+        if (!newName || newName === oldName) {
+            input.replaceWith(titleSpan); // cancelled — restore original
+            return;
+        }
+
+        // Optimistic UI update
+        titleSpan.textContent = `📂 ${newName}`;
+        input.replaceWith(titleSpan);
+        groupEl.dataset.category = newName;
+
+        // Persist: rename all notes in this group
+        chrome.runtime.sendMessage(
+            { action: "renameGroup", oldName, newName },
+            () => {
+                if (chrome.runtime.lastError) {
+                    // Fallback: update storage directly
+                    chrome.storage.local.get({ notes: [] }, (res) => {
+                        const updated = res.notes.map(n =>
+                            n.category === oldName ? { ...n, category: newName } : n
+                        );
+                        chrome.storage.local.set({ notes: updated });
+                    });
+                }
+            }
+        );
+    }
+
+    input.addEventListener('keydown', (e) => {
+        if (e.key === 'Enter') applyRename();
+        if (e.key === 'Escape') input.replaceWith(titleSpan);
+    });
+    input.addEventListener('blur', applyRename);
 }
 
 // ============================================================
