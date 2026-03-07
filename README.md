@@ -9,7 +9,7 @@ LearnDock is a Chrome Extension (Manifest V3) that injects a persistent sidebar 
 
 > 🟢 **Learning & Coding Extensions** — *Enhance skill development*
 
-LearnDock is an **Auto Notes Collector + Learning Progress Tracker** that automatically captures, categorizes, and organizes everything you learn across the web — while keeping you focused with a built-in Pomodoro timer and distraction blocker.
+LearnDock is an **Auto Notes Collector + Focus Mode** that automatically captures, categorizes, and organizes everything you learn across the web — while keeping you focused with a built-in Pomodoro timer and distraction blocker.
 
 ---
 
