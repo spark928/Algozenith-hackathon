@@ -188,47 +188,47 @@ LearnDock/
 
 ### 🎯 Focus Session Setup
 <p align="center">
-  <img src="screenshots/focus-session-setup.png" width="45%">
+  <img src="Screenshot_2026-03-07_193454.png" width="45%">
 </p>
 
 ### ⏱️ Focus Session Running
 <p align="center">
-  <img src="screenshots/focus-session-running.png" width="45%">
+  <img src="Screenshot_2026-03-07_193506.png" width="45%">
 </p>
 
 ### 🚫 Blocked Sites Manager
 <p align="center">
-  <img src="screenshots/blocked-sites-manager.png" width="45%">
+  <img src="Screenshot_2026-03-07_193454.png" width="45%">
 </p>
 
 ### 📝 Notes List (Popup)
 <p align="center">
-  <img src="screenshots/notes-list-popup.png" width="45%">
+  <img src="Screenshot_2026-03-07_193352.png" width="45%">
 </p>
 
 ### 🗺️ Knowledge Map Sidebar
 <p align="center">
-  <img src="screenshots/knowledge-map-sidebar.png" width="45%">
+  <img src="Screenshot_2026-03-07_193409.png" width="45%">
 </p>
 
 ### 🌙 Sidebar — Dark Mode
 <p align="center">
-  <img src="screenshots/sidebar-dark-mode.png" width="45%">
+  <img src="Screenshot_2026-03-07_193649.png" width="45%">
 </p>
 
 ### ☀️ Sidebar — Light Mode
 <p align="center">
-  <img src="screenshots/sidebar-light-mode.png" width="45%">
+  <img src="Screenshot_2026-03-07_193639.png" width="45%">
 </p>
 
-### 📚 In-Page Sidebar Notes
+### 📚 Notes inside Group
 <p align="center">
-  <img src="screenshots/in-page-sidebar-notes.png" width="45%">
+  <img src="Screenshot_2026-03-07_193420.png" width="45%">
 </p>
 
-### 🌐 LearnDock Active on Wikipedia
+### 🌐 LearnDock Active
 <p align="center">
-  <img src="screenshots/wikipedia-active-badge.png" width="80%">
+  <img src="Screenshot_2026-03-07_193552.png" width="80%">
 </p>
 
 ## Data & Privacy
