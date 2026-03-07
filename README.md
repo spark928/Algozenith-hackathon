@@ -22,11 +22,12 @@ LearnDock is a Chrome Extension (Manifest V3) that injects a persistent sidebar 
 
 LearnDock provides three ways to save notes:
 
+- **Auto-capture** — On detected learning pages, LearnDock automatically extracts the most meaningful snippet (definition sentence, article paragraph, or meta description) and saves it        silently as an `auto-note`
 - **Popup note entry** — Type a note directly in the extension popup and click **Save Note**
 - **Add This Page** — Click **+ Add This Page** in the popup to save the current page's title and URL as a note
 - **Sidebar note entry** — Type in the sidebar input (injected on every page) and press Enter or click **Save**
 - **Right-click highlight** — Select any text on a page, right-click, and choose **Save to LearnDock** to save the highlighted passage with the page title and URL
-- **Auto-capture** — On detected learning pages, LearnDock automatically extracts the most meaningful snippet (definition sentence, article paragraph, or meta description) and saves it silently as an `auto-note`
+
 
 All notes are stored locally via `chrome.storage.local`. Duplicate notes (same URL and same text) are automatically discarded.
 
