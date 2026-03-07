@@ -1,35 +1,278 @@
-# Context Memory – AI Learning History Tracker
+# ⚓ LearnDock
 
-A Chrome Extension that automatically records a student's learning journey across the web, tracking pages visited and saving highlighted notes for context.
+**Your on-page learning dock — capture notes, block distractions, and track focus time across the web.**
 
-## Installation Instructions (Developer Mode)
+LearnDock is a Chrome Extension (Manifest V3) that injects a persistent sidebar into every page, automatically detects learning content, saves notes with full context, and enforces distraction blocking during timed focus sessions.
 
-1. Open Google Chrome.
-2. In the URL bar, go to `chrome://extensions/`.
-3. In the top right corner, toggle the **"Developer mode"** switch to ON.
-4. Click the **"Load unpacked"** button in the top left corner.
-5. Select the `ContextMemory` folder (where this code is located).
-6. The extension is now installed! You should see the Context Memory icon in your extensions toolbar.
+---
+## 🏁 Hackathon Track
+
+> 🟢 **Learning & Coding Extensions** — *Enhance skill development*
+
+LearnDock is an **Auto Notes Collector + Focus Mode** that automatically captures, categorizes, and organizes everything you learn across the web — while keeping you focused with a built-in Pomodoro timer and distraction blocker.
+
+---
+
+## ❓ Problem Statement
+
+Modern learners face a fragmented and distraction-prone browsing experience:
+
+- 📌 **No persistent note-taking** — insights from articles, videos, and docs are lost the moment you close a tab
+- 🧠 **Zero context retention** — switching between dozens of tabs leaves no record of what was learned or where
+- 📂 **Unorganized knowledge** — highlights and bookmarks pile up with no automatic structure or grouping
+- 📵 **Constant distraction** — social media is one tab away from your study session at all times
+- ⏱️ **No time awareness** — learners have no built-in way to track or commit to focused study time
+
+---
+
+## ✅ Our Solution
+
+LearnDock addresses every one of these problems directly inside the browser — no external apps, no accounts, no friction:
+
+| Problem | LearnDock Solution |
+|---|---|
+| Notes lost when tab closes | Persistent `chrome.storage.local` — notes survive forever |
+| No context on saved content | Every note stores page title, URL, and auto-detected topic category |
+| Unorganized highlights | Automatic keyword-based categorization groups notes by subject instantly |
+| Social media distractions | Site blocker activates automatically during focus sessions |
+| No time commitment | Pomodoro-style focus timer with progress bar and desktop notification on completion |
+| Switching apps to take notes | In-page sidebar injected on every website — never leave the page |
+
+> LearnDock turns your browser into a focused, self-organizing learning environment — anchored wherever you study.
+## Installation (Developer Mode)
+
+1. Open Google Chrome and navigate to `chrome://extensions/`
+2. Enable **Developer mode** using the toggle in the top-right corner
+3. Click **Load unpacked**
+4. Select the `LearnDock` folder containing all extension files
+5. The ⚓ LearnDock icon will appear in your Chrome toolbar
+
+---
 
 ## Features
 
-- **Context Tracking:** Automatically tracks visits to specific learning domains (YouTube, StackOverflow, GeeksForGeeks, Medium, MDN, LeetCode).
-- **Save Highlights:** Highlight text on any page, right-click, and select "Save to Context Memory".
-- **Dashboard:** Click the extension icon to view your timeline of saved context.
-- **Search:** Quickly search your history by page title, website, or saved highlights.
+### 📝 Note Capture
 
-## Included Files
+LearnDock provides three ways to save notes:
 
-- `manifest.json`: Configuration and permissions (Manifest V3).
-- `background.js`: Service worker handling context menus and storage tracking.
-- `content.js`: Injected script on learning domains to track visits.
-- `popup.html`: The UI for the extension dashboard.
-- `styles.css`: Styling for the popup UI.
-- `popup.js`: Logic for displaying and searching context.
+- **Popup note entry** — Type a note directly in the extension popup and click **Save Note**
+- **Add This Page** — Click **+ Add This Page** in the popup to save the current page's title and URL as a note
+- **Sidebar note entry** — Type in the sidebar input (injected on every page) and press Enter or click **Save**
+- **Right-click highlight** — Select any text on a page, right-click, and choose **Save to LearnDock** to save the highlighted passage with the page title and URL
+- **Auto-capture** — On detected learning pages, LearnDock automatically extracts the most meaningful snippet (definition sentence, article paragraph, or meta description) and saves it silently as an `auto-note`
 
-## How to Test
+All notes are stored locally via `chrome.storage.local`. Duplicate notes (same URL and same text) are automatically discarded.
 
-1. Pin the extension to your toolbar.
-2. Visit a learning site like `developer.mozilla.org` or `stackoverflow.com`. Give it a few seconds to load.
-3. Highlight some text on the page, right-click, and choose "Save to Context Memory".
-4. Open the extension popup. You should see your visit and highlight recorded in your Learning Timeline!
+---
+
+### 🤖 Automatic Learning Page Detection
+
+LearnDock uses a multi-signal scoring system to detect whether a page is a learning resource before attempting auto-capture. Signals include:
+
+- Matching a known learning domain (YouTube, Coursera, Udemy, Khan Academy, edX, MDN, StackOverflow, Wikipedia, GitHub, Medium, freeCodeCamp, W3Schools, GeeksForGeeks, LeetCode, HackerRank, Codecademy, Towards Data Science, arXiv, docs.python.org, docs.microsoft.com, ResearchGate)
+- Learning keywords in the page title or URL (e.g. "tutorial", "guide", "crash course", "documentation", "explained")
+- Presence of multiple headings, code blocks, or math/equation elements
+- Substantial paragraph text (300+ words)
+- An `article`, `main`, or `[role="main"]` content container
+- A table of contents element
+- Educational writing phrases in page text (e.g. "in this tutorial", "you will learn", "step 1", "is defined as")
+- Penalties applied for social media feed layouts, login/sign-up pages, and very short pages without video
+
+A page must reach a minimum score of 3 to be considered a learning page.
+
+---
+
+### 🗂️ Automatic Note Categorisation
+
+Every saved note is automatically assigned a category based on keywords extracted from the page title. LearnDock strips stop words, then checks if any keywords match existing category names in your note library. If a strong match is found (at least 1 keyword overlap), the note joins that category. Otherwise a new category is created from the top 1–2 keywords of the title. Notes with no meaningful keywords are placed in **General Learning**.
+
+---
+
+### 📚 Notes Library (Popup)
+
+All saved notes appear in the popup under **Learning Timeline**, grouped by category. Each group shows a note count badge and can be expanded or collapsed. Within each group you can:
+
+- Click a note's text to open the original source URL in a new tab
+- Click a video timestamp (shown as `[MM:SS]` or `[H:MM:SS]`) to jump to that moment in the video on the source tab
+- Delete any note with the 🗑 button
+
+The sidebar (injected on-page) shows the same grouped note list and updates live whenever notes change.
+
+---
+
+### 🗺️ Knowledge Map (Sidebar Navigation)
+
+Clicking ☰ in the popup header opens the **Knowledge Map** sidebar, listing all your note categories. Clicking a category name scrolls the main notes list to that group.
+
+---
+
+### ⏱ Focus Timer (Pomodoro)
+
+Start a timed focus session from the popup:
+
+1. Select a preset duration — **25 min**, **45 min**, **60 min**, or **90 min** — or enter a custom value (1–180 minutes)
+2. A large preview clock shows your selected goal
+3. Click **🎯 Start Focus Session**
+
+While a session is running:
+
+- A live countdown and progress bar are shown in the popup
+- A **Focus Mode** toggle (on by default) enables distraction blocking across all tabs
+- Clicking the timer area (or toggling focus mode off) opens a confirmation dialog asking whether to end the session early or keep focusing
+- When the timer expires naturally, a desktop notification appears and focus mode is disabled automatically
+
+Session state (end timestamp, duration, focus mode flag) is persisted in `chrome.storage.local` so the timer survives popup close/reopen. A background alarm checks for timer expiry every minute.
+
+---
+
+### 🚫 Site Blocking (Focus Mode)
+
+When a focus session is active, LearnDock blocks access to sites on your blocked list. Blocked by default:
+
+`twitter.com`, `x.com`, `instagram.com`, `reddit.com`, `facebook.com`, `tiktok.com`, `netflix.com`
+
+You can manage the list from the popup under **🚫 Blocked Sites** (click to expand):
+
+- Existing sites are shown as removable pills — click **✕** on any pill to remove it
+- Type a domain into the input field and click **Add** to add a new site
+
+**When you visit a blocked site during a session**, the full page is replaced with a block screen showing:
+
+- The domain name and a session countdown
+- Your remaining exception count
+- A randomly selected motivational quote
+- An **"I need 5 minutes"** button (see Exceptions below)
+
+LearnDock also hides YouTube distractions (recommended videos, comments, Shorts shelves, end-screen cards) on all pages during a session, using both CSS injection and a MutationObserver to handle lazily loaded elements.
+
+---
+
+### ⏳ Focus Exceptions
+
+If you genuinely need to visit a blocked site during a session, you can request a **5-minute exception**:
+
+- Click **"I need 5 minutes"** on the block screen
+- You are allowed up to **4 exceptions per focus session**
+- Each exception has a **60-minute cooldown** before you can request another
+- A yellow countdown banner appears at the top of the page during the exception window, reminding you when the site will be blocked again
+- The exception count and last-used time are tracked in storage and reset when a new session starts
+
+---
+
+### 🎨 In-Page Sidebar
+
+An ⚓ toggle button is injected on the right edge of every page. Clicking it opens the LearnDock sidebar, which includes:
+
+- A note input field (Enter key or Save button)
+- Your full notes library grouped by category, with expand/collapse per group
+- Delete buttons on each note (visible on hover)
+- Video timestamp links that seek the on-page video when clicked
+- A **dark/light theme toggle** (🌙 / ☀️) — preference saved to storage
+- A live note count badge in the header
+
+The sidebar re-renders automatically whenever notes change. On YouTube, it also re-renders after SPA navigation events (`yt-navigate-finish`).
+
+---
+
+### 🔔 Notifications
+
+LearnDock sends desktop notifications (via `chrome.notifications`) in these situations:
+
+- A note is saved manually or via right-click highlight — **"Saved to LearnDock"**
+- A focus session completes naturally — **"Focus session complete! Great work 🎉"**
+
+Auto-captured notes do not trigger a notification.
+
+---
+
+## Permissions
+
+| Permission | Purpose |
+|---|---|
+| `storage` | Persisting notes, settings, blocked sites, timer state, and theme preference |
+| `activeTab` | Scanning the current tab's page title, URL, and video state |
+| `contextMenus` | Right-click "Save to LearnDock" on selected text |
+| `scripting` | Sending messages to content scripts across tabs |
+| `notifications` | Desktop alerts for save confirmations and session completion |
+| `alarms` | Background timer check every minute for Pomodoro expiry |
+| `host_permissions: <all_urls>` | Injecting the sidebar and focus blocking on all pages |
+
+---
+
+## File Structure
+
+```
+LearnDock/
+├── manifest.json       # Extension configuration (Manifest V3)
+├── background.js       # Service worker: timer logic, storage, context menu, alarms
+├── content.js          # Injected on all pages: sidebar, focus mode, auto-detection
+├── popup.html          # Extension popup UI
+├── popup.js            # Popup logic: timer, notes, blocked sites, navigation
+├── popup.css           # Popup styles
+├── sidebar.css         # Injected sidebar styles (light & dark mode)
+├── icon16.png          # Extension icon (16×16)
+├── icon48.png          # Extension icon (48×48)
+└── icon128.png         # Extension icon (128×128)
+```
+
+---
+
+## 📸 Screenshots
+
+### 🎯 Focus Session Setup
+<p align="center">
+  <img src="Screenshot_2026-03-07_193454.png" width="45%">
+</p>
+
+### ⏱️ Focus Session Running
+<p align="center">
+  <img src="Screenshot_2026-03-07_193506.png" width="45%">
+</p>
+
+### 🚫 Blocked Sites Manager
+<p align="center">
+  <img src="Screenshot_2026-03-07_193454.png" width="45%">
+</p>
+
+### 📝 Notes List (Popup)
+<p align="center">
+  <img src="Screenshot_2026-03-07_193352.png" width="45%">
+</p>
+
+### 🗺️ Knowledge Map Sidebar
+<p align="center">
+  <img src="Screenshot_2026-03-07_193409.png" width="45%">
+</p>
+
+### 🌙 Sidebar — Dark Mode
+<p align="center">
+  <img src="Screenshot_2026-03-07_193649.png" width="45%">
+</p>
+
+### ☀️ Sidebar — Light Mode
+<p align="center">
+  <img src="Screenshot_2026-03-07_193639.png" width="45%">
+</p>
+
+### 📚 Notes inside Group
+<p align="center">
+  <img src="Screenshot_2026-03-07_193420.png" width="45%">
+</p>
+
+### 🌐 LearnDock Active
+<p align="center">
+  <img src="Screenshot_2026-03-07_193552.png" width="80%">
+</p>
+
+## Data & Privacy
+
+All data is stored **locally** on your device using `chrome.storage.local`. Nothing is sent to any server. Clearing the extension's storage (via `chrome://extensions/` → Details → Clear data, or uninstalling the extension) removes all saved notes and settings.
+
+---
+
+## Notes
+
+- The extension requires Chrome (or a Chromium-based browser supporting Manifest V3)
+- Timer state survives popup close but not browser restart (alarm-based, not a persistent background process)
+- The sidebar and block page are injected at `document_idle`, so they may appear a moment after a page loads
+- On YouTube, the extension listens for `yt-navigate-finish` to handle single-page-app navigation between videos
