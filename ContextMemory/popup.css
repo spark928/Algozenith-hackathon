@@ -1,4 +1,4 @@
-/* popup.css - Antigravity v1.2 */
+/* popup.css - LearnDock */
 :root {
     --primary: #3b82f6;
     --primary-dark: #2563eb;
@@ -14,17 +14,19 @@ body {
     font-family: 'Inter', -apple-system, sans-serif;
     margin: 0;
     width: 360px;
-    height: 550px;
-    /* Slightly taller for more content */
+    min-height: 400px;
+    max-height: 600px;
     background-color: var(--bg);
     color: var(--text);
     overflow: hidden;
+    /* body itself does not scroll */
 }
 
 .main-wrapper {
     display: flex;
     width: 100%;
     height: 100%;
+    max-height: 600px;
     position: relative;
     overflow: hidden;
 }
@@ -34,7 +36,6 @@ body {
     position: absolute;
     top: 0;
     left: -280px;
-    /* Hidden by default */
     width: 280px;
     height: 100%;
     background: var(--sidebar-bg);
@@ -70,40 +71,15 @@ body {
     padding: 12px;
 }
 
-.sidebar-group-link {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    padding: 10px 12px;
-    margin-bottom: 4px;
-    border-radius: 6px;
-    cursor: pointer;
-    font-size: 13px;
-    transition: background 0.2s;
-    background: transparent;
-    border: none;
-    width: 100%;
-    text-align: left;
-}
-
-.sidebar-group-link:hover {
-    background: #f3f4f6;
-}
-
-.sidebar-group-link .count {
-    font-size: 10px;
-    background: #e5e7eb;
-    color: var(--muted);
-    padding: 2px 6px;
-    border-radius: 10px;
-}
-
 /* Main Layout */
 .main-layout {
     flex: 1;
     display: flex;
     flex-direction: column;
     width: 100%;
+    height: 100%;
+    max-height: 600px;
+    overflow: hidden;
     transition: transform 0.3s ease;
 }
 
@@ -114,6 +90,7 @@ body {
     display: flex;
     justify-content: space-between;
     align-items: center;
+    flex-shrink: 0;
 }
 
 .header-left {
@@ -130,34 +107,11 @@ body {
     letter-spacing: -0.5px;
 }
 
-.icon-btn {
-    background: none;
-    border: none;
-    padding: 4px;
-    cursor: pointer;
-    font-size: 18px;
-    color: var(--muted);
-    transition: color 0.2s;
-    line-height: 1;
-}
-
-.icon-btn:hover {
-    color: var(--primary);
-}
-
-.status-badge {
-    font-size: 10px;
-    background: #dbeafe;
-    color: #1e40af;
-    padding: 2px 8px;
-    border-radius: 10px;
-    font-weight: 600;
-}
-
 .container {
     padding: 12px;
     flex: 1;
-    overflow-y: hidden;
+    overflow-y: auto;
+    /* Main container scrolls */
     display: flex;
     flex-direction: column;
 }
@@ -171,20 +125,32 @@ section {
     box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05);
 }
 
+/* Pomodoro Timer Specifics */
+.duration-btn {
+    flex: 1;
+    min-width: 60px;
+    background: #f1f5f9;
+    color: #475569;
+    border: 1px solid #e5e7eb;
+    border-radius: 6px;
+    padding: 6px;
+    font-size: 12px;
+    font-weight: 700;
+    cursor: pointer;
+    transition: all 0.2s;
+}
+
+.duration-btn:hover {
+    background: #e2e8f0;
+}
+
+.duration-btn.selected {
+    background: var(--primary);
+    color: white;
+    border-color: var(--primary);
+}
+
 .timer-display {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-}
-
-#studyTime {
-    font-size: 24px;
-    font-weight: 800;
-    font-variant-numeric: tabular-nums;
-    color: var(--primary);
-}
-
-.focus-box {
     display: flex;
     justify-content: space-between;
     align-items: center;
@@ -200,6 +166,12 @@ section {
     margin: 0;
     font-size: 11px;
     color: var(--muted);
+}
+
+.focus-box {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
 }
 
 /* Switch Style */
@@ -247,6 +219,36 @@ input:checked+.slider:before {
     transform: translateX(16px);
 }
 
+/* Blocked Sites Panel */
+.section-toggle {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    cursor: pointer;
+}
+
+.site-pill {
+    background: #f1f5f9;
+    color: #374151;
+    font-size: 11px;
+    padding: 4px 10px;
+    border-radius: 12px;
+    border: 1px solid #e2e8f0;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+}
+
+.site-pill .remove-site {
+    cursor: pointer;
+    color: #94a3b8;
+    font-weight: 800;
+}
+
+.site-pill .remove-site:hover {
+    color: #ef4444;
+}
+
 /* Note Input */
 .add-note textarea {
     width: 100%;
@@ -287,28 +289,31 @@ input:checked+.slider:before {
     transform: scale(0.98);
 }
 
-.small-btn {
-    font-size: 11px;
-    padding: 4px 8px;
-    border: 1px solid var(--border);
-    border-radius: 6px;
-    background: white;
+.secondary-btn {
+    flex: 1;
+    background: #f1f5f9;
+    color: #374151;
+    border: 1px solid #e5e7eb;
+    border-radius: 8px;
+    padding: 10px;
+    font-size: 12px;
+    font-weight: 700;
     cursor: pointer;
-    transition: all 0.2s;
-    color: var(--muted);
 }
 
-.small-btn:hover {
-    background: #f9fafb;
-    border-color: #d1d5db;
-    color: var(--text);
+.icon-btn {
+    background: none;
+    border: none;
+    padding: 4px;
+    cursor: pointer;
+    font-size: 18px;
+    color: var(--muted);
 }
 
 /* Notes List */
 .notes-scroll {
-    flex: 1;
-    overflow-y: auto;
-    padding-right: 4px;
+    padding-top: 10px;
+    margin-bottom: 20px;
 }
 
 .category-group {
@@ -317,7 +322,6 @@ input:checked+.slider:before {
     border-radius: 10px;
     margin-bottom: 12px;
     overflow: hidden;
-    box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05);
 }
 
 .category-header {
@@ -329,16 +333,6 @@ input:checked+.slider:before {
     justify-content: space-between;
     align-items: center;
     cursor: pointer;
-    transition: background 0.2s;
-}
-
-.category-header:hover {
-    background: #f1f5f9;
-}
-
-.category-header.collapsed {
-    background: #ffffff;
-    font-weight: 600;
 }
 
 .badge {
@@ -347,85 +341,50 @@ input:checked+.slider:before {
     color: #475569;
     padding: 2px 8px;
     border-radius: 12px;
-    font-weight: 700;
 }
 
 .note-item {
     padding: 12px 14px;
     border-bottom: 1px solid #f1f5f9;
-    transition: background 0.2s;
-}
-
-.note-item:last-child {
-    border-bottom: none;
-}
-
-.note-item:hover {
-    background: #fcfdfe;
 }
 
 .note-row {
     display: flex;
     justify-content: space-between;
-    align-items: flex-start;
-    gap: 10px;
 }
 
 .note-content {
     font-size: 13px;
-    line-height: 1.5;
-    color: var(--text);
     display: flex;
-    align-items: flex-start;
     gap: 10px;
     flex: 1;
 }
 
 .note-type-icon {
-    font-size: 12px;
-    min-width: 20px;
-    padding-top: 2px;
     opacity: 0.6;
+    font-size: 12px;
 }
 
-.note-body {
-    flex: 1;
-}
-
-/* Clickable Note Title/Text */
 .note-link {
     color: inherit;
     text-decoration: none;
-    display: inline;
     cursor: pointer;
-    transition: color 0.2s;
 }
 
 .note-link:hover {
-    text-decoration: underline;
     color: var(--primary);
+    text-decoration: underline;
 }
 
 .delete-note-btn {
     background: none;
     border: none;
-    padding: 4px;
     cursor: pointer;
-    font-size: 14px;
-    opacity: 0;
-    /* Hover to reveal */
-    transition: opacity 0.2s, transform 0.2s;
-    line-height: 1;
-    margin-top: -2px;
-}
-
-.note-item:hover .delete-note-btn {
-    opacity: 0.5;
+    opacity: 0.3;
 }
 
 .delete-note-btn:hover {
-    opacity: 1 !important;
-    transform: scale(1.15);
+    opacity: 1;
     color: #ef4444;
 }
 
@@ -438,7 +397,6 @@ input:checked+.slider:before {
 
 .page-title {
     display: block;
-    max-width: 260px;
     overflow: hidden;
     text-overflow: ellipsis;
     white-space: nowrap;
@@ -451,23 +409,17 @@ input:checked+.slider:before {
     margin-right: 4px;
 }
 
-.time-link:hover {
-    text-decoration: underline;
-}
-
 .empty-state {
     text-align: center;
     color: var(--muted);
     padding: 30px;
-    font-size: 14px;
-    line-height: 1.6;
+    font-size: 13px;
 }
 
 .hidden {
     display: none !important;
 }
 
-/* Scrollbar */
 ::-webkit-scrollbar {
     width: 6px;
 }
@@ -480,36 +432,28 @@ input:checked+.slider:before {
 ::-webkit-scrollbar-thumb:hover {
     background: #cbd5e1;
 }
-/* ── Add Note Actions row ─────────────────────────────────── */
-.add-note-actions { display: flex; gap: 8px; }
-.add-note-actions .primary-btn { flex: 1; }
-.secondary-btn {
-    flex: 1; background: #f1f5f9; color: #374151;
-    border: 1px solid #e5e7eb; border-radius: 8px;
-    padding: 10px; font-size: 12px; font-weight: 700;
-    cursor: pointer; transition: background 0.2s, color 0.2s;
-}
-.secondary-btn:hover { background: #e2e8f0; color: #111827; }
 
-/* ── Drag & Drop ────────────────────────────────────────────── */
-.note-item.dragging { opacity: 0.4; cursor: grabbing; }
-.note-item[draggable="true"] { cursor: grab; }
-.category-group.drag-over {
-    outline: 2px dashed #3b82f6; outline-offset: -2px;
-    background: #eff6ff; border-radius: 10px;
+/* ── Sidebar Elements ─────────────────────────────────────── */
+.sidebar-group-link {
+    display: flex;
+    justify-content: space-between;
+    padding: 10px 12px;
+    border-radius: 6px;
+    cursor: pointer;
+    font-size: 13px;
+    border: none;
+    background: transparent;
+    width: 100%;
+    text-align: left;
 }
 
-/* ── Group Rename ───────────────────────────────────────────── */
-.rename-btn {
-    background: none; border: none; cursor: pointer;
-    font-size: 12px; padding: 0 4px; opacity: 0;
-    transition: opacity 0.2s; line-height: 1; margin-left: 4px; flex-shrink: 0;
+.sidebar-group-link:hover {
+    background: #f3f4f6;
 }
-.category-header:hover .rename-btn { opacity: 0.65; }
-.rename-btn:hover { opacity: 1 !important; }
-.rename-input {
-    font-size: 13px; font-weight: 700; font-family: inherit;
-    border: none; border-bottom: 2px solid #3b82f6;
-    background: transparent; color: #111827;
-    outline: none; padding: 0 4px; min-width: 80px; max-width: 170px;
+
+.sidebar-group-link .count {
+    font-size: 10px;
+    background: #e5e7eb;
+    padding: 2px 6px;
+    border-radius: 10px;
 }

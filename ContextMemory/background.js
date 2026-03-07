@@ -1,40 +1,135 @@
-// background.js - Antigravity
+// background.js - LearnDock
+// Handles focus timer end-timestamp and note storage logic.
 
 chrome.runtime.onInstalled.addListener(() => {
   chrome.contextMenus.create({
     id: "save-to-notes",
-    title: "Save to Context Memory",
+    title: "Save to LearnDock",
     contexts: ["selection"]
   });
 
-  chrome.storage.local.get(['studyTimeToday'], (res) => {
-    if (!res.studyTimeToday) chrome.storage.local.set({ studyTimeToday: 0 });
+  // Ensure default blocked sites on install
+  chrome.storage.local.get(['blockedSites'], (res) => {
+    if (!res.blockedSites) {
+      chrome.storage.local.set({
+        blockedSites: ["twitter.com", "x.com", "instagram.com", "reddit.com", "facebook.com", "tiktok.com", "netflix.com"]
+      });
+    }
   });
-
-  chrome.alarms.create("studyTimer", { periodInMinutes: 1 });
 });
 
-let isCurrentPageLearning = false;
-
-// Unified message listener for robust communication
+// Unified message listener for LearnDock logic
 chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
-  if (request.action === "pageStatus") {
-    isCurrentPageLearning = request.isLearning;
-    sendResponse({ status: "received" });
-  }
-
-  else if (request.action === "saveNote" || request.action === "autoSaveNote") {
+  if (request.action === "saveNote" || request.action === "autoSaveNote") {
     saveToStorage(request.note, (savedNote) => {
       sendResponse({ status: "saved", note: savedNote });
     });
-    return true; // Keep port open for async saveToStorage
+    return true;
   }
 
   else if (request.action === "ping") {
     sendResponse({ status: "pong" });
   }
 
-  // Rename all notes in a category to a new name
+  // ── TIMER LOGIC ─────────────────────────────────────────────
+  if (request.action === "startPomodoro") {
+    const duration = request.duration; // seconds, from popup only
+    chrome.storage.local.set({
+      pomodoroEnd: Date.now() + (duration * 1000),
+      pomodoroDuration: duration,
+      focusModeEnabled: true,
+      exceptionCount: 0,
+      lastExceptionTime: null,
+      exceptionActive: false
+    }, () => {
+      chrome.tabs.query({}, (tabs) => {
+        tabs.forEach(tab => {
+          chrome.tabs.sendMessage(tab.id, { action: "toggleFocusMode", enabled: true }, () => {
+            if (chrome.runtime.lastError) { }
+          });
+        });
+      });
+      sendResponse({ ok: true });
+    });
+    chrome.alarms.create("pomodoroCheck", { periodInMinutes: 1 });
+    return true;
+  }
+
+  if (request.action === "getPomodoroStatus") {
+    chrome.storage.local.get(
+      ["pomodoroEnd", "pomodoroDuration", "focusModeEnabled"],
+      (res) => {
+        if (!res.pomodoroEnd) {
+          sendResponse({ running: false, remaining: 0, total: 0 });
+          return;
+        }
+        const remaining = Math.max(0,
+          Math.floor((res.pomodoroEnd - Date.now()) / 1000));
+        sendResponse({
+          running: res.focusModeEnabled && remaining > 0,
+          remaining: remaining,
+          total: res.pomodoroDuration || 0
+        });
+      }
+    );
+    return true;
+  }
+
+  if (request.action === "stopPomodoro") {
+    chrome.storage.local.set({
+      pomodoroEnd: null,
+      pomodoroDuration: null,
+      focusModeEnabled: false,
+      exceptionActive: false,
+      exceptionCount: 0
+    });
+    chrome.alarms.clear("pomodoroCheck");
+    // send toggleFocusMode disabled to all tabs
+    chrome.tabs.query({}, (tabs) => {
+      tabs.forEach(tab => {
+        chrome.tabs.sendMessage(
+          tab.id,
+          { action: "toggleFocusMode", enabled: false },
+          () => { if (chrome.runtime.lastError) { } }
+        );
+      });
+    });
+    sendResponse({ ok: true });
+    return true;
+  }
+
+  if (request.action === "startException") {
+    chrome.storage.local.get(
+      ['exceptionCount', 'lastExceptionTime'], (res) => {
+        const count = res.exceptionCount || 0;
+        const last = res.lastExceptionTime;
+        const minsSince = last
+          ? Math.floor((Date.now() - last) / 60000) : 999;
+
+        if (count >= 4) {
+          sendResponse({ allowed: false, reason: 'max_reached' });
+          return;
+        }
+        if (minsSince < 60 && last) {
+          sendResponse({
+            allowed: false,
+            reason: 'too_soon',
+            remaining: 60 - minsSince
+          });
+          return;
+        }
+        const expiry = Date.now() + (5 * 60 * 1000);
+        chrome.storage.local.set({
+          exceptionCount: count + 1,
+          lastExceptionTime: Date.now(),
+          exceptionActive: true,
+          exceptionExpiry: expiry
+        }, () => sendResponse({ allowed: true, expiry }));
+      });
+    return true;
+  }
+
+  // Group Management
   else if (request.action === "renameGroup") {
     const { oldName, newName } = request;
     chrome.storage.local.get({ notes: [] }, (res) => {
@@ -46,7 +141,6 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
     return true;
   }
 
-  // Move a single note to a different category
   else if (request.action === "moveNote") {
     const { noteId, newCategory } = request;
     chrome.storage.local.get({ notes: [] }, (res) => {
@@ -61,12 +155,38 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
   return true;
 });
 
+// pomodoroCheck alarm handler
 chrome.alarms.onAlarm.addListener((alarm) => {
-  if (alarm.name === "studyTimer" && isCurrentPageLearning) {
-    chrome.storage.local.get(['studyTimeToday'], (res) => {
-      const newTime = (res.studyTimeToday || 0) + 60;
-      chrome.storage.local.set({ studyTimeToday: newTime });
-    });
+  if (alarm.name === "pomodoroCheck") {
+    chrome.storage.local.get(
+      ["pomodoroEnd", "focusModeEnabled"], (res) => {
+        if (!res.pomodoroEnd || !res.focusModeEnabled) return;
+        if (Date.now() >= res.pomodoroEnd) {
+          chrome.notifications.create({
+            type: "basic",
+            iconUrl: "icon48.png",
+            title: "LearnDock",
+            message: "Focus session complete! Great work 🎉"
+          });
+          chrome.storage.local.set({
+            focusModeEnabled: false,
+            pomodoroEnd: null,
+            pomodoroDuration: null,
+            exceptionActive: false,
+            exceptionCount: 0
+          });
+          chrome.alarms.clear("pomodoroCheck");
+          chrome.tabs.query({}, (tabs) => {
+            tabs.forEach(tab => {
+              chrome.tabs.sendMessage(
+                tab.id,
+                { action: "toggleFocusMode", enabled: false },
+                () => { if (chrome.runtime.lastError) { } }
+              );
+            });
+          });
+        }
+      });
   }
 });
 
@@ -79,15 +199,12 @@ chrome.contextMenus.onClicked.addListener((info, tab) => {
       note: info.selectionText,
       timestamp: null,
       createdAt: Date.now(),
-      type: "highlight-note" // Corrected type
+      type: "highlight-note"
     };
     saveToStorage(highlightNote);
   }
 });
 
-/**
- * Categorization Engine: Matches notes based on shared significant keywords.
- */
 function determineCategory(title, existingNotes) {
   const stopWords = new Set(['how', 'what', 'guide', 'tutorial', 'introduction', 'explained', 'course', 'learn', 'video', 'best', 'to', 'the', 'a', 'in', 'of', 'and', 'for', 'with', 'on']);
   const clean = t => t.toLowerCase().replace(/[-\|].*$/, '').replace(/[^\w\s]/g, ' ').trim();
@@ -101,7 +218,8 @@ function determineCategory(title, existingNotes) {
     if (!cat || cat === "General Learning") return;
     if (!catMap[cat]) catMap[cat] = new Set();
     const noteTitle = note.pageTitle || note.title || "";
-    clean(noteTitle).split(/\s+/).filter(w => w.length > 3 && !stopWords.has(w)).forEach(w => catMap[cat].add(w));
+    const cleanedTitle = clean(noteTitle);
+    cleanedTitle.split(/\s+/).filter(w => w.length > 3 && !stopWords.has(w)).forEach(w => catMap[cat].add(w));
   });
 
   let bestCat = null;
@@ -119,9 +237,12 @@ function saveToStorage(newNote, callback) {
   chrome.storage.local.get({ notes: [] }, (result) => {
     const notes = result.notes;
 
-    // Check for duplicates
-    const isDuplicate = notes.some(n => n.url === newNote.url && (n.note === newNote.note || (n.type === "auto-note" && newNote.type === "auto-note")));
-    if (isDuplicate && newNote.type === "auto-note") {
+    // BUG A — Duplicate check Fix
+    const isDuplicate = notes.some(n =>
+      n.url === newNote.url &&
+      n.note === newNote.note
+    );
+    if (isDuplicate) {
       if (callback) callback(null);
       return;
     }
@@ -135,8 +256,8 @@ function saveToStorage(newNote, callback) {
         chrome.notifications.create({
           type: "basic",
           iconUrl: "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAAAXNSR0IArs4c6QAAAARnQU1BAACxjwv8YQUAAAAJcEhZcwAADsMAAA7DAcdvqGQAAAANSURBVBhXY3jP4PgfAAWgA3E9uWwOAAAAAElFTkSuQmCC",
-          title: "Antigravity",
-          message: "Saved to Context Memory"
+          title: "LearnDock",
+          message: "Saved to LearnDock"
         });
       }
       if (callback) callback(newNote);

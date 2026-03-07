@@ -28,33 +28,125 @@
                     <button id="toggleSidebar" class="icon-btn" title="Toggle Navigation Map">☰</button>
                     <h1>⚓ LearnDock</h1>
                 </div>
-                <div id="learningStatus" class="status-badge hidden">🎓 Learning Mode Active</div>
             </div>
 
             <div class="container">
-                <!-- Study Tracking -->
+
+                <!-- Pomodoro Timer Section -->
                 <section class="timer-section">
-                    <div class="timer-display">
-                        <div class="label-group">
-                            <strong>Study Time Today</strong>
-                            <p>Auto-tracking on learning pages</p>
+
+                    <div id="pomodoroSetup">
+                        <strong>Start Focus Session</strong>
+                        <p style="font-size:11px;color:#6b7280;margin:4px 0 10px;">
+                            Set your focus goal and start
+                        </p>
+                        <div style="display:flex;gap:8px;flex-wrap:wrap;
+                                  margin-bottom:10px;">
+                            <button class="duration-btn" data-mins="25">25m</button>
+                            <button class="duration-btn" data-mins="45">45m</button>
+                            <button class="duration-btn" data-mins="60">60m</button>
+                            <button class="duration-btn" data-mins="90">90m</button>
                         </div>
-                        <div id="studyTime">00:00:00</div>
+                        <div style="display:flex;gap:8px;align-items:center;
+                                  margin-bottom:8px;">
+                            <input id="customDuration" type="number" min="1" max="180" placeholder="Custom mins" style="flex:1;padding:8px;
+                                      border:1px solid #e5e7eb;
+                                      border-radius:6px;font-size:12px;" />
+                            <span style="font-size:11px;color:#6b7280;">min</span>
+                        </div>
+                        <div id="durationPreview" style="background:#eff6ff;border:2px solid #3b82f6;
+                                  border-radius:12px;padding:16px;
+                                  text-align:center;margin:10px 0;">
+                            <div id="previewTime" style="font-size:36px;font-weight:800;
+                                    color:#3b82f6;
+                                    font-variant-numeric:tabular-nums;
+                                    letter-spacing:-1px;">
+                                25:00
+                            </div>
+                            <div style="font-size:11px;color:#6b7280;margin-top:4px;">
+                                your focus goal
+                            </div>
+                        </div>
+                        <p id="durationError" style="color:#ef4444;font-size:11px;
+                                margin:0 0 8px;display:none;"></p>
+                        <button id="startFocusBtn" class="primary-btn">
+                            🎯 Start Focus Session
+                        </button>
                     </div>
-                    <button id="resetTimer" class="small-btn" style="margin-top: 8px;">Reset Timer</button>
+
+                    <div id="pomodoroRunning" class="hidden">
+                        <div class="timer-display">
+                            <div class="label-group">
+                                <strong>Focus Session</strong>
+                                <p id="timerSubtext">of 25:00 goal</p>
+                            </div>
+                            <div id="studyTime" style="font-size:28px;font-weight:800;
+                                    color:#3b82f6;">
+                                25:00
+                            </div>
+                        </div>
+                        <div style="height:6px;background:#e5e7eb;
+                                  border-radius:3px;margin-top:10px;
+                                  overflow:hidden;">
+                            <div id="progressFill" style="height:100%;width:0%;
+                                    background:#3b82f6;border-radius:3px;
+                                    transition:width 1s linear;">
+                            </div>
+                        </div>
+                        <div class="focus-box"
+                            style="margin-top:15px; border-top: 1px solid #f1f5f9; padding-top:10px;">
+                            <div class="label-group">
+                                <strong>Focus Mode</strong>
+                                <p>Block distractions and track time</p>
+                            </div>
+                            <label class="switch">
+                                <input type="checkbox" id="focusToggle" checked>
+                                <span class="slider"></span>
+                            </label>
+                        </div>
+                    </div>
+
+                    <div id="pomodoroConfirm" class="hidden" style="background:#fef3c7;border:1px solid #f59e0b;
+                                border-radius:10px;padding:14px;
+                                text-align:center;">
+                        <div style="font-size:20px;margin-bottom:6px;">⚠️</div>
+                        <strong>End focus session early?</strong>
+                        <p id="confirmRemaining" style="font-size:12px;color:#92400e;
+                                margin:6px 0 12px;">
+                            Time remaining shown here
+                        </p>
+                        <div style="display:flex;gap:8px;">
+                            <button id="keepFocusingBtn" class="primary-btn">
+                                Keep Focusing
+                            </button>
+                            <button id="endSessionBtn" style="flex:1;background:#ef4444;color:white;
+                                       border:none;padding:10px;
+                                       border-radius:8px;font-weight:700;
+                                       cursor:pointer;">
+                                End Session
+                            </button>
+                        </div>
+                    </div>
+
                 </section>
 
-                <!-- Focus Mode -->
-                <section class="focus-section">
-                    <div class="focus-box">
-                        <div class="label-group">
-                            <strong>Focus Mode</strong>
-                            <p>Hide YouTube distractions</p>
+                <!-- Blocked Sites Manager -->
+                <section class="blocked-sites-section">
+                    <div class="section-toggle" id="toggleBlockedSites">
+                        <strong>🚫 Blocked Sites</strong>
+                        <span id="blockedSitesArrow">▼</span>
+                    </div>
+                    <div id="blockedSitesPanel" class="hidden">
+                        <div id="blockedSitesList" style="display:flex;flex-wrap:wrap;gap:4px;
+                                  padding:8px 0;min-height:32px;">
                         </div>
-                        <label class="switch">
-                            <input type="checkbox" id="focusToggle">
-                            <span class="slider"></span>
-                        </label>
+                        <div style="display:flex;gap:8px;margin-top:4px;">
+                            <input id="newSiteInput" type="text" placeholder="e.g. twitter.com" style="flex:1;padding:8px;
+                                      border:1px solid #e5e7eb;
+                                      border-radius:6px;font-size:12px;" />
+                            <button id="addSiteBtn" class="primary-btn" style="width:auto;padding:8px 14px;
+                                       font-size:12px;">Add</button>
+                        </div>
                     </div>
                 </section>
 
@@ -63,8 +155,8 @@
                     <textarea id="noteText" placeholder="Capture a thought or insight..."></textarea>
                     <div class="add-note-actions">
                         <button id="saveNoteBtn" class="primary-btn">Save Note</button>
-                        <button id="addPageBtn" class="secondary-btn"
-                            title="Add this page to your notes even if not auto-detected">+ Add This Page</button>
+                        <button id="addPageBtn" class="secondary-btn" title="Add this page to your notes">+ Add This
+                            Page</button>
                     </div>
                 </section>
 
